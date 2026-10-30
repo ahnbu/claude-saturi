@@ -97,3 +97,8 @@ _handoff/
 # (실측: OECD ODA 통계 원본 109MB).
 *.csv
 # >>> build-ignore:end
+
+# 치트시트 화면의 「PDF로 저장」이 받는 파일이라 공개 사이트에 함께 올린다. node build-pdf.mjs로 다시 만든다
+!claude-saturi-cheatsheet.pdf
+# 링크 미리보기 이미지. node build-pdf.mjs로 다시 만든다
+!og.jpg

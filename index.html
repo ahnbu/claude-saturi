@@ -1,12 +1,14 @@
 <!doctype html>
 <!-- 클로드 사투리 사전 v5
-     첫 화면: 단어 소나기(Matter.js). 1순위 주황 큰 글씨, 2순위 검정 큰 글씨, 3순위 작은 글씨. 단어를 톡 누르면 그 단어 화면으로. 오른쪽 위 GitHub.
+     첫 화면: 단어 소나기(Matter.js). 1순위 주황 큰 글씨, 2순위 검정 큰 글씨, 3순위 작은 글씨. 단어를 톡 누르면 그 단어 화면으로. 오른쪽 위 치트시트·GitHub 글자 링크.
      단어 화면: 대표 4개(축 → 갈린다 → 자리 → 함께 봅니다) 뒤에 나머지 단어. 넘기면 화면 하나씩 멈춘다(scroll-snap).
      예문이 먼저 재생되고(빨간 펜 교정), 좌우 버튼·밀기·점으로 예문을 넘긴다. 그 아래 「왜 이럴까?」와 한 줄 문구.
      화면 문구(COPY·quip·사람 말)는 제미나이 작성분만 쓴다. -->
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>클로드 사투리 사전</title>
 <meta name="description" content="클로드가 유독 자주 쓰는 사투리와 실제 예문 모음">
+<meta property="og:title" content="클로드 사투리 사전"><meta property="og:description" content="클로드가 유독 자주 쓰는 사투리와 실제 예문 모음"><meta property="og:type" content="website"><meta property="og:url" content="https://ahnbu.github.io/claude-saturi/"><meta property="og:image" content="https://ahnbu.github.io/claude-saturi/og.jpg"><meta name="twitter:card" content="summary_large_image">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PVG3FDHNPF"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-PVG3FDHNPF');</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;900&display=swap">
 <style>
@@ -14,8 +16,7 @@
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-snap-type:y mandatory}
 /* 넘길 때 단어 화면 하나씩 멈춘다 */
-.hero,.entry{scroll-snap-align:start;scroll-snap-stop:always}
-.end{scroll-snap-align:end}
+.hero,.entry,.end{scroll-snap-align:start;scroll-snap-stop:always}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:"Pretendard",sans-serif;word-break:keep-all;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 :focus-visible{outline:3px solid var(--coral);outline-offset:4px}
@@ -23,8 +24,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 /* ── 첫 화면 ── */
 .hero{position:relative;height:100svh;min-height:560px;overflow:hidden;background:var(--ink)}
 #stage{position:absolute;inset:0}
-.band{position:absolute;left:0;right:0;top:0;z-index:3;background:var(--ink);padding:max(10svh,52px) 20px 20px;text-align:center;pointer-events:none}
-.title{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(52px,14vw,128px);line-height:1.02;letter-spacing:-.04em;color:var(--paper)}
+.band{position:absolute;left:0;right:0;top:0;z-index:3;background:var(--ink);padding:max(18svh,128px) 20px 20px;text-align:center;pointer-events:none}
+.title{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(52px,min(14vw,15svh),128px);line-height:1.02;letter-spacing:-.04em;color:var(--paper)}
 .title span{display:block;opacity:0;transform:translateY(30px);animation:in 1s var(--ease) forwards}
 .title span:nth-child(2){animation-delay:.12s}
 .title em,.end em{font-style:normal;color:var(--coral)}
@@ -38,13 +39,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 @keyframes in{to{opacity:1;transform:none}}
 /* GitHub 아이콘: 첫 화면 오른쪽 위 */
 /* 오른쪽 위: 치트시트 · GitHub */
-.corner{position:absolute;top:16px;right:16px;z-index:4;display:flex;align-items:center;gap:4px}
-.sheetlink{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border-radius:999px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4);color:var(--paper);font-size:14px;font-weight:700;text-decoration:none;transition:background .2s}
-.sheetlink:hover{background:rgba(255,255,255,.12)}
-.sheetlink svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round}
-.gh{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--paper);transition:background .2s}
-.gh:hover{background:rgba(255,255,255,.12)}
-.gh svg{width:26px;height:26px;fill:currentColor}
+.corner{position:absolute;top:12px;right:clamp(12px,3vw,28px);z-index:4;display:flex;align-items:center}
+/* 첫 화면의 주인공은 제목과 모아보기 버튼이다. 여기는 안내 글자만 둔다(2026-10-30 결정) */
+.corner a{display:inline-flex;align-items:center;height:44px;padding:0 10px;font-size:13px;font-weight:600;color:rgba(255,255,255,.82);text-decoration:none;transition:color .2s}
+.corner a:hover{color:var(--paper);text-decoration:underline;text-underline-offset:4px}
+.corner i{width:1px;height:12px;background:rgba(255,255,255,.28)}
 .chip{position:absolute;left:0;top:0;white-space:nowrap;font-family:"Noto Serif KR",serif;font-weight:900;line-height:1;padding:.22em .34em .3em;background:var(--paper);color:var(--ink);border-radius:4px;will-change:transform;z-index:2;cursor:grab;letter-spacing:-.03em;touch-action:none;user-select:none}
 .chip.t1{color:var(--coral)}
 .chip.t3{color:#374151}
@@ -53,13 +52,13 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .entry{min-height:100svh;padding:calc(clamp(40px,min(9vw,6svh),110px) + 100lvh - 100svh) clamp(20px,5vw,64px) 40px;max-width:1100px;margin:0 auto;display:flex;flex-direction:column}
 /* 단어 사이 검은 선은 뺐다: 주소줄이 접혀 화면이 길어지면 다음 화면의 선이 바닥에 비쳤다. 화면 나눔은 스냅이 맡는다.
    위 여백에 주소줄 높이(100lvh - 100svh)를 더해, 화면이 길어져도 바닥에 다음 단어가 비치지 않고 빈 여백만 보인다 */
-.hw{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(96px,26vw,220px);line-height:.95;letter-spacing:-.05em;color:var(--coral)}
-.hw.long{font-size:clamp(64px,17vw,170px)}
-.hw.xlong{font-size:clamp(52px,12vw,120px)}
+.hw{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(96px,min(26vw,22svh),220px);line-height:.95;letter-spacing:-.05em;color:var(--coral)}
+.hw.long{font-size:clamp(64px,min(17vw,17svh),170px)}
+.hw.xlong{font-size:clamp(52px,min(12vw,13svh),120px)}
 /* 기호 표제어(—) 옆 이름표 */
 .hwnote{margin-left:.3em;font-family:"Pretendard",sans-serif;font-size:.28em;font-weight:700;letter-spacing:-.01em;vertical-align:middle}
 .player{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;padding:28px 0 8px;touch-action:pan-y}
-.sheet{font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(28px,6.6vw,58px);line-height:1.35;letter-spacing:-.02em;min-height:5.4em;display:flex;flex-direction:column;justify-content:center}
+.sheet{font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(28px,min(6.6vw,5.4svh),58px);line-height:1.35;letter-spacing:-.02em;min-height:5.4em;display:flex;flex-direction:column;justify-content:center}
 .typed{color:var(--ink);text-decoration:line-through;text-decoration-color:transparent;text-decoration-thickness:.07em;transition:color .4s,text-decoration-color .5s}
 .struck .typed{color:var(--soft);text-decoration-color:var(--coral)}
 .caret{display:inline-block;width:.08em;height:.9em;background:var(--ink);vertical-align:-.08em;margin-left:.04em;animation:blink 1s steps(1) infinite}
@@ -87,19 +86,19 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .whyq{margin:0 0 10px;font-size:15px;font-weight:700;color:var(--coral);letter-spacing:-.01em}
 
 /* ── 마무리 ── */
-.end{background:var(--ink);color:var(--paper);padding:clamp(72px,12vw,140px) clamp(20px,5vw,64px) 32px}
-.end h2{margin:0 auto;max-width:1100px;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(44px,9vw,110px);line-height:1.05;letter-spacing:-.03em}
+.end{min-height:100svh;display:flex;flex-direction:column;background:var(--ink);color:var(--paper);padding:clamp(72px,12vw,140px) clamp(20px,5vw,64px) 32px}
+.end h2{margin:0 auto;width:100%;max-width:1100px;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(44px,9vw,110px);line-height:1.05;letter-spacing:-.03em}
 /* 제작자 소개(시안 ② A안) */
-.maker{max-width:1100px;margin:64px auto 0;padding-top:24px;border-top:1px solid rgba(255,255,255,.18)}
-.maker .who{margin:0;font-size:15px;color:rgba(255,255,255,.65)}
-.maker .name{margin:4px 0 0;font-size:20px;font-weight:800}
-.maker .bio{margin:6px 0 0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.75)}
-.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.maker{width:100%;max-width:1100px;margin:auto auto 0;padding-top:28px;border-top:1px solid rgba(255,255,255,.18)}
+.maker .who{margin:0;font-size:13px;color:rgba(255,255,255,.65)}
+.maker .name{margin:12px 0 0;font-size:24px;font-weight:800;line-height:1.3}
+.maker .bio{margin:8px 0 0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.75)}
+.maker .bio a{color:var(--paper);text-underline-offset:3px}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 .links a{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35);color:var(--paper);text-decoration:none;font-size:14px;font-weight:700;transition:background .2s}
 .links a:hover{background:rgba(255,255,255,.1)}
 .links svg{width:16px;height:16px}
-.meta{max-width:1100px;margin:40px auto 0;display:flex;justify-content:space-between;align-items:center}
-.meta img{height:26px;width:auto;display:block}
+.meta{width:100%;max-width:1100px;margin:32px auto 0;display:flex;justify-content:flex-end;align-items:center}
 .top{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);transition:background .2s}
 .top:hover{background:rgba(255,255,255,.1)}
 .top svg{width:20px;height:20px;stroke:var(--paper);stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
@@ -108,8 +107,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 <body>
 <header class="hero" id="top">
  <div id="stage"></div>
- <div class="corner"><a class="sheetlink" href="cheatsheet.html" aria-label="치트시트로 한눈에 보기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z M15 3v4h4 M9 12h7 M9 16h7"/></svg>치트시트</a>
- <a class="gh" href="https://github.com/ahnbu/claude-saturi" target="_blank" rel="noopener" aria-label="GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a></div>
+ <div class="corner"><a href="cheatsheet.html">치트시트</a><i></i><a href="https://github.com/ahnbu/claude-saturi" target="_blank" rel="noopener">GitHub</a></div>
  <div class="band" id="band">
   <h1 class="title"><span>클로드</span><span><em>사투리</em> 사전</span></h1>
   <button class="down" type="button" id="down"><span id="downLabel"></span><i aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></i></button>
@@ -120,14 +118,13 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
  <div class="maker">
   <p class="who">만든 사람</p>
   <p class="name">안병욱</p>
-  <p class="bio">플래닝하이 대표 · AI 실무와 업무자동화의 일머리를 설계합니다</p>
+  <p class="bio"><a href="https://planninghigh.com" target="_blank" rel="noopener">플래닝하이</a> 대표 · AI 실무와 업무자동화의 일머리를 설계합니다</p>
   <div class="links">
    <a href="https://www.threads.com/@byungwook.an" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0zm0 0v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1"/></svg>Threads</a>
    <a href="https://www.linkedin.com/in/byungwook-an" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.75h4V21H3V9.75zm6.5 0h3.8v1.6h.06c.53-1 1.83-1.9 3.74-1.9 4 0 4.9 2.6 4.9 6V21h-4v-4.9c0-1.2-.02-2.7-1.65-2.7-1.65 0-1.9 1.3-1.9 2.6V21h-4V9.75z"/></svg>LinkedIn</a>
-   <a href="https://planninghigh.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 11l9-7 9 7v9h-6v-6H9v6H3z"/></svg>planninghigh.com</a>
   </div>
  </div>
- <div class="meta"><img src="img/planninghigh-logo-dark.png" alt="PlanningHigh" width="980" height="205"><a class="top" href="#top" aria-label="맨 위로"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></a></div>
+ <div class="meta"><a class="top" href="#top" aria-label="맨 위로"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></a></div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
@@ -261,14 +258,17 @@ stage.addEventListener('click', e => {
 let bandBottom = 0;
 document.fonts.ready.then(() => {
   bandBottom = document.getElementById('band').getBoundingClientRect().bottom - hero.getBoundingClientRect().top;
-  const base = mobile ? 24 : 37, scale = {1: 1.75, 2: 1.15, 3: .78};
+  const scale = {1: 1.75, 2: 1.15, 3: .78};
+  // 단어 더미가 제목 아래 공간보다 크면 위 칩이 제목에 잘린다. 공간에 맞춰 글자 크기를 줄인다(노트북처럼 낮은 화면)
+  const area = TIER.reduce((sum, [w, tier]) => sum + (scale[tier] * (w.length === 1 && tier < 3 ? 1.45 : 1)) ** 2 * (w.length + .7) * 1.35, 0);
+  const base = Math.min(mobile ? 24 : 37, Math.sqrt((H - bandBottom) * W * .26 / area));
   const shuffle = a => a.sort(() => Math.random() - .5);
   const order = [...shuffle(TIER.filter(t => t[1] === 3)), ...shuffle(TIER.filter(t => t[1] === 2)), ...shuffle(TIER.filter(t => t[1] === 1))];
   // 짧게 쏟아지고(간격 75ms), 1순위 3개만 조금 띄워 하나씩 떨어진다
   let t = 400;
   order.forEach(([w, tier]) => {
     t += tier === 1 ? 380 : 75;
-    setTimeout(() => drop(w, tier, W * (.18 + Math.random() * .64), base * scale[tier] * (tier === 3 ? .9 + Math.random() * .25 : 1) * (w.length === 1 && tier < 3 ? 1.45 : 1), bandBottom), t);
+    setTimeout(() => drop(w, tier, W * (.1 + Math.random() * .8), base * scale[tier] * (tier === 3 ? .9 + Math.random() * .25 : 1) * (w.length === 1 && tier < 3 ? 1.45 : 1), bandBottom), t);
   });
   document.querySelectorAll('.entry').forEach(s => { players.set(s, new Player(s)); io.observe(s); });
 });
