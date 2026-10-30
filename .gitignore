@@ -1,0 +1,99 @@
+# >>> build-ignore:begin — 아래는 scripts/ignore-entries.json 에서 생성된다. 직접 고치지 말 것.
+# === AI CLI tools ===
+.playwright-cli/
+.playwright-mcp/
+.bkit/
+.pdca-status
+.pdca-status.json
+.bkit-memory
+.bkit-memory.json
+.pdca-snapshots
+.current-session-id
+
+# === OS / Editor ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Secrets ===
+.env
+.env.local
+
+# === 한글 문서 (2026-08-22) ===
+# 강의확인서·동의서 등에 주민번호·계좌가 담기는 경우가 많아 기본 차단한다.
+# 의도적으로 추적할 레포는 해당 .gitignore 에 `!*.hwp` 로 풀거나 `git add -f` 를 쓴다.
+*.hwp
+*.hwpx
+
+# === 대용량 미디어 (2026-08-22) ===
+# GitHub 파일 크기 한도 100MB. 영상·음원은 git 이 diff 를 만들지 못해
+# 저장소만 부풀리므로 기본 차단한다. 필요한 레포는 `!*.mp4` 로 풀거나 `git add -f`.
+# 주의: *.ts 는 TypeScript 와 겹치므로 넣지 않는다.
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.wmv
+*.flv
+*.m4v
+*.mpg
+*.mpeg
+*.3gp
+*.mp3
+*.wav
+*.m4a
+*.aac
+*.flac
+*.ogg
+*.wma
+*.aiff
+
+# === 디스크 이미지 ===
+*.iso
+*.dmg
+
+# === 작업 임시 폴더 ===
+# 전역에는 넣지 않는다 — 남의 레포가 tmp/ 를 실제 자산으로 추적하는 경우가 있다.
+temp/
+.temp/
+tmp/
+.tmp/
+_temp/
+_handoff/
+
+# === 도구 부산물 (레포 한정) ===
+.codegraph/
+
+# === 바이너리 블랙리스트 (2026-04-12 정책) ===
+# 전역에는 넣지 않는다 — 이미지·PDF 가 자산인 레포에서 파일이 조용히 누락된다.
+# 영상·음원은 core 의 대용량 미디어 그룹이 이미 덮는다.
+*.pptx
+*.xlsx
+*.docx
+*.ppt
+*.xls
+*.doc
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.bmp
+*.tiff
+*.ico
+*.psd
+*.skp
+*.zip
+*.rar
+*.7z
+*.exe
+*.msi
+*.dll
+
+# === 데이터 원본 (2026-08-23) ===
+# 내려받은 통계·수집 원본이라 버전 관리 가치가 없고, 단일 파일이 100MB 를 넘기기 쉽다
+# (실측: OECD ODA 통계 원본 109MB).
+*.csv
+# >>> build-ignore:end

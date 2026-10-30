@@ -1,0 +1,288 @@
+<!doctype html>
+<!-- 클로드 사투리 사전 v5
+     첫 화면: 단어 소나기(Matter.js). 1순위 주황 큰 글씨, 2순위 검정 큰 글씨, 3순위 작은 글씨. 단어를 톡 누르면 그 단어 화면으로. 오른쪽 위 GitHub.
+     단어 화면: 대표 4개(축 → 갈린다 → 자리 → 함께 봅니다) 뒤에 나머지 단어. 넘기면 화면 하나씩 멈춘다(scroll-snap).
+     예문이 먼저 재생되고(빨간 펜 교정), 좌우 버튼·밀기·점으로 예문을 넘긴다. 그 아래 「왜 이럴까?」와 한 줄 문구.
+     화면 문구(COPY·quip·사람 말)는 제미나이 작성분만 쓴다. -->
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>클로드 사투리 사전</title>
+<meta name="description" content="클로드가 유독 자주 쓰는 사투리와 실제 예문 모음">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;900&display=swap">
+<style>
+:root{--ink:#111827;--paper:#FFFFFF;--coral:#FF6B47;--soft:#9CA3AF;--line:#E5E7EB;--ease:cubic-bezier(.16,1,.3,1)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-snap-type:y mandatory}
+/* 넘길 때 단어 화면 하나씩 멈춘다 */
+.hero,.entry{scroll-snap-align:start;scroll-snap-stop:always}
+.end{scroll-snap-align:end}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Pretendard",sans-serif;word-break:keep-all;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:3px solid var(--coral);outline-offset:4px}
+
+/* ── 첫 화면 ── */
+.hero{position:relative;height:100svh;min-height:560px;overflow:hidden;background:var(--ink)}
+#stage{position:absolute;inset:0}
+.band{position:absolute;left:0;right:0;top:0;z-index:3;background:var(--ink);padding:max(10svh,52px) 20px 20px;text-align:center;pointer-events:none}
+.title{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(52px,14vw,128px);line-height:1.02;letter-spacing:-.04em;color:var(--paper)}
+.title span{display:block;opacity:0;transform:translateY(30px);animation:in 1s var(--ease) forwards}
+.title span:nth-child(2){animation-delay:.12s}
+.title em,.end em{font-style:normal;color:var(--coral)}
+/* 이동 버튼: 흰 알약 + 아래로 흐르는 화살표 두 개 */
+/* 이동 버튼: 흰 알약 + 검은 원 안의 화살표(움직이지 않음) */
+.down{pointer-events:auto;margin-top:24px;display:inline-flex;align-items:center;gap:12px;padding:13px 14px 13px 24px;border-radius:999px;background:var(--paper);color:var(--ink);font-weight:700;font-size:17px;letter-spacing:-.01em;box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;animation:in .8s 1s var(--ease) forwards;transition:transform .2s var(--ease),background .2s}
+.down:hover{background:#F3F4F6}
+.down:active{transform:scale(.96)}
+.down i{width:32px;height:32px;border-radius:50%;background:var(--ink);display:grid;place-items:center;flex:none}
+.down svg{width:16px;height:16px;stroke:var(--paper);stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+@keyframes in{to{opacity:1;transform:none}}
+/* GitHub 아이콘: 첫 화면 오른쪽 위 */
+/* 오른쪽 위: 치트시트 · GitHub */
+.corner{position:absolute;top:16px;right:16px;z-index:4;display:flex;align-items:center;gap:4px}
+.sheetlink{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border-radius:999px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4);color:var(--paper);font-size:14px;font-weight:700;text-decoration:none;transition:background .2s}
+.sheetlink:hover{background:rgba(255,255,255,.12)}
+.sheetlink svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round}
+.gh{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--paper);transition:background .2s}
+.gh:hover{background:rgba(255,255,255,.12)}
+.gh svg{width:26px;height:26px;fill:currentColor}
+.chip{position:absolute;left:0;top:0;white-space:nowrap;font-family:"Noto Serif KR",serif;font-weight:900;line-height:1;padding:.22em .34em .3em;background:var(--paper);color:var(--ink);border-radius:4px;will-change:transform;z-index:2;cursor:grab;letter-spacing:-.03em;touch-action:none;user-select:none}
+.chip.t1{color:var(--coral)}
+.chip.t3{color:#374151}
+
+/* ── 단어 화면 ── */
+.entry{min-height:100svh;padding:calc(clamp(40px,min(9vw,6svh),110px) + 100lvh - 100svh) clamp(20px,5vw,64px) 40px;max-width:1100px;margin:0 auto;display:flex;flex-direction:column}
+/* 단어 사이 검은 선은 뺐다: 주소줄이 접혀 화면이 길어지면 다음 화면의 선이 바닥에 비쳤다. 화면 나눔은 스냅이 맡는다.
+   위 여백에 주소줄 높이(100lvh - 100svh)를 더해, 화면이 길어져도 바닥에 다음 단어가 비치지 않고 빈 여백만 보인다 */
+.hw{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(96px,26vw,220px);line-height:.95;letter-spacing:-.05em;color:var(--coral)}
+.hw.long{font-size:clamp(64px,17vw,170px)}
+.hw.xlong{font-size:clamp(52px,12vw,120px)}
+/* 기호 표제어(—) 옆 이름표 */
+.hwnote{margin-left:.3em;font-family:"Pretendard",sans-serif;font-size:.28em;font-weight:700;letter-spacing:-.01em;vertical-align:middle}
+.player{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;padding:28px 0 8px;touch-action:pan-y}
+.sheet{font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(28px,6.6vw,58px);line-height:1.35;letter-spacing:-.02em;min-height:5.4em;display:flex;flex-direction:column;justify-content:center}
+.typed{color:var(--ink);text-decoration:line-through;text-decoration-color:transparent;text-decoration-thickness:.07em;transition:color .4s,text-decoration-color .5s}
+.struck .typed{color:var(--soft);text-decoration-color:var(--coral)}
+.caret{display:inline-block;width:.08em;height:.9em;background:var(--ink);vertical-align:-.08em;margin-left:.04em;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.hit{position:relative;display:inline-block;color:var(--coral)}
+.hit svg{position:absolute;left:-.3em;top:-.26em;width:calc(100% + .6em);height:calc(100% + .48em);overflow:visible;pointer-events:none}
+.hit path{fill:none;stroke:var(--coral);stroke-width:5;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.human{margin-top:.3em;opacity:0;transform:translateY(.3em);transition:opacity .5s,transform .5s var(--ease)}
+.human.on{opacity:1;transform:none}
+/* 예문 넘기기: 좌우 동그라미 버튼 + 누를 수 있는 점 */
+.ctrl{display:flex;align-items:center;gap:18px;margin-top:20px}
+.nav{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--paper);transition:transform .2s var(--ease),background .2s,opacity .2s}
+.nav svg{width:22px;height:22px;stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.nav:hover{background:var(--coral);transform:scale(1.06)}
+.nav:active{transform:scale(.92)}
+.dots{display:flex;gap:6px}
+.dots button{width:28px;height:28px;display:grid;place-items:center}
+.dots button::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--line);transition:background .3s,width .3s var(--ease)}
+.dots button.on::after{background:var(--coral);width:26px;border-radius:5px}
+@media (hover:hover){.ctrl .nav{opacity:.35}.player:hover .nav{opacity:1}}
+.about{margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+/* 「왜 이럴까?」 문구: 예문(명조·굵게)과 서체·굵기·색을 모두 달리해 덧붙인 설명으로 읽히게(시안 ① A안) */
+.quip{margin:0;font-family:"Pretendard",sans-serif;font-weight:500;font-size:clamp(17px,2vw,20px);line-height:1.65;max-width:32em;color:#6B7280}
+/* 「왜 이럴까?」: 뜻풀이 바로 위 작은 제목. 뜻풀이가 곧 답이다 */
+.whyq{margin:0 0 10px;font-size:15px;font-weight:700;color:var(--coral);letter-spacing:-.01em}
+
+/* ── 마무리 ── */
+.end{background:var(--ink);color:var(--paper);padding:clamp(72px,12vw,140px) clamp(20px,5vw,64px) 32px}
+.end h2{margin:0 auto;max-width:1100px;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(44px,9vw,110px);line-height:1.05;letter-spacing:-.03em}
+/* 제작자 소개(시안 ② A안) */
+.maker{max-width:1100px;margin:64px auto 0;padding-top:24px;border-top:1px solid rgba(255,255,255,.18)}
+.maker .who{margin:0;font-size:15px;color:rgba(255,255,255,.65)}
+.maker .name{margin:4px 0 0;font-size:20px;font-weight:800}
+.maker .bio{margin:6px 0 0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.75)}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.links a{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35);color:var(--paper);text-decoration:none;font-size:14px;font-weight:700;transition:background .2s}
+.links a:hover{background:rgba(255,255,255,.1)}
+.links svg{width:16px;height:16px}
+.meta{max-width:1100px;margin:40px auto 0;display:flex;justify-content:space-between;align-items:center}
+.meta img{height:26px;width:auto;display:block}
+.top{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);transition:background .2s}
+.top:hover{background:rgba(255,255,255,.1)}
+.top svg{width:20px;height:20px;stroke:var(--paper);stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.title span,.down{opacity:1;transform:none}}
+</style></head>
+<body>
+<header class="hero" id="top">
+ <div id="stage"></div>
+ <div class="corner"><a class="sheetlink" href="cheatsheet.html" aria-label="치트시트로 한눈에 보기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z M15 3v4h4 M9 12h7 M9 16h7"/></svg>치트시트</a>
+ <a class="gh" href="https://github.com/ahnbu/claude-saturi" target="_blank" rel="noopener" aria-label="GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a></div>
+ <div class="band" id="band">
+  <h1 class="title"><span>클로드</span><span><em>사투리</em> 사전</span></h1>
+  <button class="down" type="button" id="down"><span id="downLabel"></span><i aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></i></button>
+ </div>
+</header>
+<main id="entries"></main>
+<footer class="end"><h2 id="endline"></h2>
+ <div class="maker">
+  <p class="who">만든 사람</p>
+  <p class="name">안병욱</p>
+  <p class="bio">플래닝하이 대표 · AI 실무와 업무자동화의 일머리를 설계합니다</p>
+  <div class="links">
+   <a href="https://www.threads.com/@byungwook.an" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0zm0 0v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1"/></svg>Threads</a>
+   <a href="https://www.linkedin.com/in/byungwook-an" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.75h4V21H3V9.75zm6.5 0h3.8v1.6h.06c.53-1 1.83-1.9 3.74-1.9 4 0 4.9 2.6 4.9 6V21h-4v-4.9c0-1.2-.02-2.7-1.65-2.7-1.65 0-1.9 1.3-1.9 2.6V21h-4V9.75z"/></svg>LinkedIn</a>
+   <a href="https://planninghigh.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 11l9-7 9 7v9h-6v-6H9v6H3z"/></svg>planninghigh.com</a>
+  </div>
+ </div>
+ <div class="meta"><img src="img/planninghigh-logo-dark.png" alt="PlanningHigh" width="980" height="205"><a class="top" href="#top" aria-label="맨 위로"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></a></div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
+<script src="data.js"></script>
+<script>
+// ── 화면 문구(제미나이 작성) ──
+const COPY = {down: '사투리 모아보기', why: '왜 이럴까?', endline: '당신의 클로드는 어떤 [사투리]를 쓰나요?'};
+// TIER·ENTRIES는 data.js에 있다
+
+
+const esc = s => s.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const wait = ms => new Promise(r => setTimeout(r, ms));
+document.getElementById('downLabel').textContent = COPY.down;
+document.getElementById('endline').innerHTML = esc(COPY.endline).replace(/\[([^\]]+)\]/g, '<em>$1</em>');
+
+// ── 단어 화면 ──
+const arrow = d => `<svg viewBox="0 0 24 24"><path d="${d}"/></svg>`;
+document.getElementById('entries').innerHTML = ENTRIES.map((e, i) => `<section class="entry" id="w-${i}" data-i="${i}">
+ <h2 class="hw${e.word.length > 6 ? ' xlong' : e.word.length > 3 ? ' long' : ''}">${esc(e.word)}${e.note ? `<small class="hwnote">${esc(e.note)}</small>` : ''}</h2>
+ <div class="player">
+  <div class="sheet" aria-live="polite"></div>
+  <div class="ctrl">
+   <button class="nav prev" type="button" aria-label="이전 예문">${arrow('M15 5l-7 7 7 7')}</button>
+   <div class="dots">${e.ex.map((_, k) => `<button type="button" aria-label="예문 ${k + 1}"></button>`).join('')}</div>
+   <button class="nav next" type="button" aria-label="다음 예문">${arrow('M9 5l7 7-7 7')}</button>
+  </div>
+ </div>
+ <div class="about"><p class="whyq">${esc(COPY.why)}</p><p class="quip">${esc(e.quip)}</p></div></section>`).join('');
+document.getElementById('down').addEventListener('click', () => document.getElementById('w-0').scrollIntoView());
+
+function loopPath() {
+  const j = () => (Math.random() - .5) * 6;
+  return `M ${8 + j()} ${50 + j()} C ${5 + j()} ${8 + j()}, ${92 + j()} ${2 + j()}, ${96 + j()} ${45 + j()} S ${30 + j()} ${102 + j()}, ${6 + j()} ${58 + j()} S ${40 + j()} ${4 + j()}, ${70 + j()} ${10 + j()}`;
+}
+function marked(text, marks) {
+  let t = esc(text);
+  for (const m of [...marks].sort((a, b) => b.length - a.length)) t = t.split(esc(m)).join(`\u0000${esc(m)}\u0001`);
+  return t.replace(/\u0000/g, '<span class="hit">').replace(/\u0001/g, '</span>');
+}
+// 예문 재생기: 자동으로 넘어가다가, 사람이 한 번 넘기면 그때부터는 손으로만 넘긴다
+class Player {
+  constructor(sec) {
+    this.sec = sec; this.e = ENTRIES[sec.dataset.i]; this.k = 0; this.auto = true; this.token = null;
+    this.sheet = sec.querySelector('.sheet'); this.dots = [...sec.querySelectorAll('.dots button')];
+    sec.querySelector('.prev').onclick = () => this.go(this.k - 1, true);
+    sec.querySelector('.next').onclick = () => this.go(this.k + 1, true);
+    this.dots.forEach((d, k) => d.onclick = () => this.go(k, true));
+    let sx = null; const pl = sec.querySelector('.player');
+    pl.addEventListener('pointerdown', ev => { if (!ev.target.closest('button')) sx = ev.clientX; });
+    pl.addEventListener('pointerup', ev => { if (sx !== null && Math.abs(ev.clientX - sx) > 50) this.go(this.k + (ev.clientX < sx ? 1 : -1), true); sx = null; });
+  }
+  go(k, manual) { if (manual) this.auto = false; this.k = (k + this.e.ex.length) % this.e.ex.length; this.play(); }
+  stop() { this.token = null; }
+  async play() {
+    const token = this.token = {}, [ai, human] = this.e.ex[this.k], live = () => this.token === token;
+    this.dots.forEach((d, n) => d.classList.toggle('on', n === this.k));
+    this.sheet.innerHTML = '<div class="old"><span class="typed"></span><span class="caret"></span></div><div class="human"></div>';
+    const typed = this.sheet.querySelector('.typed');
+    for (let c = 1; c <= ai.length; c++) { if (!live()) return; typed.textContent = ai.slice(0, c); await wait(38 + Math.random() * 40); }
+    this.sheet.querySelector('.caret').remove();
+    typed.innerHTML = marked(ai, this.e.marks);
+    await wait(400); if (!live()) return;
+    for (const hit of typed.querySelectorAll('.hit')) {
+      hit.insertAdjacentHTML('beforeend', `<svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${loopPath()}"/></svg>`);
+      const p = hit.querySelector('path'), L = p.getTotalLength();
+      p.style.strokeDasharray = L;
+      p.animate([{strokeDashoffset: L}, {strokeDashoffset: 0}], {duration: 600, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards'});
+      await wait(360); if (!live()) return;
+    }
+    await wait(550); if (!live()) return;
+    this.sheet.querySelector('.old').classList.add('struck');
+    await wait(400); if (!live()) return;
+    const hu = this.sheet.querySelector('.human'); hu.textContent = human; hu.classList.add('on');
+    await wait(3200);
+    if (live() && this.auto) this.go(this.k + 1, false);
+  }
+}
+const players = new Map();
+const io = new IntersectionObserver(es => es.forEach(en => {
+  const p = players.get(en.target);
+  if (en.isIntersecting && !p.token) p.play();
+  else if (!en.isIntersecting) p.stop();
+}), {threshold: .45});
+
+// ── 첫 화면 단어 소나기 ──
+const {Engine, Bodies, Composite, Body, Constraint, Runner} = Matter;
+const hero = document.querySelector('.hero'), stage = document.getElementById('stage');
+const W = hero.clientWidth, H = hero.clientHeight, mobile = W < 700;
+const engine = Engine.create({gravity: {y: 1.2}});
+const WALL = 200;
+Composite.add(engine.world, [
+  Bodies.rectangle(W / 2, H + WALL / 2, W * 3, WALL, {isStatic: true}),
+  Bodies.rectangle(-WALL / 2, H / 2, WALL, H * 4, {isStatic: true}),
+  Bodies.rectangle(W + WALL / 2, H / 2, WALL, H * 4, {isStatic: true}),
+]);
+const items = [];
+function drop(word, tier, x, size, spawnY) {
+  const el = document.createElement('div');
+  el.className = 'chip t' + tier; el.textContent = word; el.style.fontSize = size + 'px';
+  // 첫 화면 단어가 표제어와 다르면(갈래 → 갈린다) 표제어·동그라미 낱말·chips로 찾는다
+  const idx = ENTRIES.findIndex(e => e.word === word || (e.chips || []).includes(word) || e.marks.includes(word));
+  if (idx >= 0) el.dataset.go = idx;
+  stage.appendChild(el);
+  const w = el.offsetWidth, h = el.offsetHeight;
+  const b = Bodies.rectangle(x, spawnY - h - Math.random() * 40, w, h, {restitution: .25, friction: .6, chamfer: {radius: 4}, angle: (Math.random() - .5) * .5});
+  Body.setInertia(b, b.inertia * 6);
+  Composite.add(engine.world, b);
+  items.push({el, b, w, h});
+  bindDrag(el, b);
+}
+// 끌면 던지기, 톡 누르면 그 단어 화면으로
+function bindDrag(el, b) {
+  el.addEventListener('pointerdown', ev => {
+    ev.preventDefault(); el.setPointerCapture(ev.pointerId);
+    const r = hero.getBoundingClientRect(), start = {x: ev.clientX - r.left, y: ev.clientY - r.top}, t0 = performance.now();
+    const c = Constraint.create({pointA: start, bodyB: b, pointB: {x: start.x - b.position.x, y: start.y - b.position.y}, stiffness: .2, length: 0});
+    Composite.add(engine.world, c);
+    const move = e2 => { c.pointA = {x: e2.clientX - r.left, y: e2.clientY - r.top}; };
+    const up = e2 => {
+      Composite.remove(engine.world, c); el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
+      const moved = Math.hypot(e2.clientX - r.left - start.x, e2.clientY - r.top - start.y);
+      if (moved < 8 && performance.now() - t0 < 350 && el.dataset.go) document.getElementById('w-' + el.dataset.go).scrollIntoView();
+    };
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  });
+}
+stage.addEventListener('click', e => {
+  const r = hero.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  items.forEach(({b}) => { const dx = b.position.x - x, dy = b.position.y - y, d = Math.hypot(dx, dy); if (d < 220) Body.applyForce(b, b.position, {x: dx / d * .02 * b.mass, y: -.05 * b.mass}); });
+});
+let bandBottom = 0;
+document.fonts.ready.then(() => {
+  bandBottom = document.getElementById('band').getBoundingClientRect().bottom - hero.getBoundingClientRect().top;
+  const base = mobile ? 24 : 37, scale = {1: 1.75, 2: 1.15, 3: .78};
+  const shuffle = a => a.sort(() => Math.random() - .5);
+  const order = [...shuffle(TIER.filter(t => t[1] === 3)), ...shuffle(TIER.filter(t => t[1] === 2)), ...shuffle(TIER.filter(t => t[1] === 1))];
+  // 짧게 쏟아지고(간격 75ms), 1순위 3개만 조금 띄워 하나씩 떨어진다
+  let t = 400;
+  order.forEach(([w, tier]) => {
+    t += tier === 1 ? 380 : 75;
+    setTimeout(() => drop(w, tier, W * (.18 + Math.random() * .64), base * scale[tier] * (tier === 3 ? .9 + Math.random() * .25 : 1) * (w.length === 1 && tier < 3 ? 1.45 : 1), bandBottom), t);
+  });
+  document.querySelectorAll('.entry').forEach(s => { players.set(s, new Player(s)); io.observe(s); });
+});
+Runner.run(Runner.create(), engine);
+(function loop() {
+  for (const it of items) {
+    const {b, h} = it;
+    if (b.position.y - h / 2 < bandBottom + 6 && b.speed < .4) {
+      if (!it.stuck) it.stuck = performance.now();
+      else if (performance.now() - it.stuck > 500) { Body.applyForce(b, b.position, {x: (b.position.x < W / 2 ? -1 : 1) * .012 * b.mass, y: 0}); it.stuck = 0; }
+    } else it.stuck = 0;
+  }
+  for (const {el, b, w, h} of items) el.style.transform = `translate(${b.position.x - w / 2}px,${b.position.y - h / 2}px) rotate(${b.angle}rad)`;
+  requestAnimationFrame(loop);
+})();
+</script>
+</body></html>

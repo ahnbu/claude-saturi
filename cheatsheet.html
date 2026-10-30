@@ -1,0 +1,71 @@
+<!doctype html>
+<!-- 클로드 사투리 사전 한 장 보기(치트시트)
+     data.js의 ENTRIES를 그대로 그린다: 단어 · 첫 예문(클로드 문장 → 사람 말) · 왜 이럴까 한 줄.
+     인쇄하면 A4 세로로 나뉜다(브라우저 「PDF로 저장」). 화면 문구(SHEET)는 제미나이 작성분만 쓴다. -->
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>클로드 사투리 사전 — 한 장 보기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;900&display=swap">
+<style>
+:root{--ink:#111827;--paper:#FFFFFF;--coral:#FF6B47;--soft:#9CA3AF;--line:#E5E7EB;--sub:#6B7280}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Pretendard",sans-serif;word-break:keep-all}
+a{color:inherit}
+.wrap{max-width:1100px;margin:0 auto;padding:clamp(32px,6vw,72px) clamp(20px,5vw,48px) 56px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:28px}
+.back{font-size:15px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.back svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.print{font:inherit;font-size:15px;font-weight:700;padding:10px 16px;border-radius:999px;border:0;background:var(--ink);color:var(--paper);cursor:pointer}
+h1{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(36px,7vw,64px);letter-spacing:-.03em;line-height:1.1}
+h1 em{font-style:normal;color:var(--coral)}
+.lead{margin:12px 0 0;font-size:17px;line-height:1.6;color:var(--sub)}
+.grid{margin-top:36px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));border-top:2px solid var(--ink)}
+.card{padding:20px 4px 22px;border-bottom:1px solid var(--line);break-inside:avoid}
+.grid .card{padding-right:20px}
+.w{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:28px;letter-spacing:-.03em;color:var(--coral)}
+.w small{margin-left:6px;font-family:"Pretendard",sans-serif;font-size:13px;font-weight:700}
+.ex{margin:10px 0 0;font-size:16px;line-height:1.55}
+.ex s{color:var(--soft);text-decoration-color:var(--coral);text-decoration-thickness:2px}
+.ex b{display:block;font-weight:700}
+.why{margin:10px 0 0;font-size:14px;line-height:1.55;color:var(--sub)}
+.foot{margin-top:40px;font-size:14px;color:var(--sub)}
+@media print{
+  @page{size:A4;margin:14mm}
+  .top{display:none}
+  .wrap{padding:0}
+  h1{font-size:30pt}
+  .grid{grid-template-columns:1fr 1fr}
+  .card{padding:10px 12px 10px 0}
+  .w{font-size:18pt}
+  .ex{font-size:10.5pt}
+  .why{font-size:9pt}
+}
+</style></head>
+<body>
+<div class="wrap">
+ <div class="top">
+  <a class="back" href="index.html"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><span id="backLabel"></span></a>
+  <button class="print" type="button" onclick="print()" id="printLabel"></button>
+ </div>
+ <h1><span id="title"></span></h1>
+ <p class="lead" id="lead"></p>
+ <div class="grid" id="grid"></div>
+ <p class="foot" id="foot"></p>
+</div>
+<script src="data.js"></script>
+<script>
+// ── 화면 문구(제미나이 작성, 공개문구 기록 #2) ──
+const SHEET = {title: '클로드 [사투리] 한눈에 보기', lead: '매일 마주치는 24개 표현과 사람 말 전후 비교, 짤막한 촌평을 한 장에 모았습니다.', back: '사전으로 돌아가기', print: 'PDF로 저장', foot: ''};
+const esc = s => s.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+document.getElementById('title').innerHTML = esc(SHEET.title).replace(/\[([^\]]+)\]/g, '<em>$1</em>');
+document.getElementById('lead').textContent = SHEET.lead;
+document.getElementById('backLabel').textContent = SHEET.back;
+document.getElementById('printLabel').textContent = SHEET.print;
+document.getElementById('foot').textContent = SHEET.foot;
+document.getElementById('grid').innerHTML = ENTRIES.map(e => `<article class="card">
+ <h2 class="w">${esc(e.word)}${e.note ? `<small>${esc(e.note)}</small>` : ''}</h2>
+ <p class="ex"><s>${esc(e.ex[0][0])}</s><b>${esc(e.ex[0][1])}</b></p>
+ <p class="why">${esc(e.quip)}</p>
+</article>`).join('');
+</script>
+</body></html>
