@@ -25,7 +25,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .hero{position:relative;height:100svh;min-height:560px;overflow:hidden;background:var(--ink)}
 #stage{position:absolute;inset:0}
 .band{position:absolute;left:0;right:0;top:0;z-index:3;background:var(--ink);padding:max(18svh,128px) 20px 20px;text-align:center;pointer-events:none}
-.title{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(52px,min(14vw,15svh),128px);line-height:1.02;letter-spacing:-.04em;color:var(--paper)}
+.title{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(52px,min(14vw,15svh),128px);line-height:1.16;letter-spacing:-.04em;color:var(--paper)}
 .title span{display:block;opacity:0;transform:translateY(30px);animation:in 1s var(--ease) forwards}
 .title span:nth-child(2){animation-delay:.12s}
 .title em,.end em{font-style:normal;color:var(--coral)}
@@ -52,9 +52,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .entry{min-height:100svh;padding:calc(clamp(40px,min(9vw,6svh),110px) + 100lvh - 100svh) clamp(20px,5vw,64px) 40px;max-width:1100px;margin:0 auto;display:flex;flex-direction:column}
 /* 단어 사이 검은 선은 뺐다: 주소줄이 접혀 화면이 길어지면 다음 화면의 선이 바닥에 비쳤다. 화면 나눔은 스냅이 맡는다.
    위 여백에 주소줄 높이(100lvh - 100svh)를 더해, 화면이 길어져도 바닥에 다음 단어가 비치지 않고 빈 여백만 보인다 */
-.hw{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(96px,min(26vw,22svh),220px);line-height:.95;letter-spacing:-.05em;color:var(--coral)}
-.hw.long{font-size:clamp(64px,min(17vw,17svh),170px)}
-.hw.xlong{font-size:clamp(52px,min(12vw,13svh),120px)}
+/* 표제어는 글자 수와 무관하게 한 크기. 가장 긴 표제어(함께 봅니다, 약 4.84em)가 한 줄에 들어가는 폭에 맞춘다 */
+.hw{margin:0;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(60px,min(calc((100vw - 2 * clamp(20px,5vw,64px)) / 4.95),16svh),170px);line-height:1.16;letter-spacing:-.05em;color:var(--coral);text-wrap:balance}
 /* 기호 표제어(—) 옆 이름표 */
 .hwnote{margin-left:.3em;font-family:"Pretendard",sans-serif;font-size:.28em;font-weight:700;letter-spacing:-.01em;vertical-align:middle}
 .player{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;padding:28px 0 8px;touch-action:pan-y}
@@ -87,13 +86,14 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
 /* ── 마무리 ── */
 .end{min-height:100svh;display:flex;flex-direction:column;background:var(--ink);color:var(--paper);padding:clamp(72px,12vw,140px) clamp(20px,5vw,64px) 32px}
-.end h2{margin:0 auto;width:100%;max-width:1100px;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(44px,9vw,110px);line-height:1.05;letter-spacing:-.03em}
+.end h2{margin:0 auto;width:100%;max-width:1100px;font-family:"Noto Serif KR",serif;font-weight:900;font-size:clamp(44px,9vw,110px);line-height:1.24;letter-spacing:-.03em;text-wrap:balance}
 /* 제작자 소개(시안 ② A안) */
 .maker{width:100%;max-width:1100px;margin:auto auto 0;padding-top:28px;border-top:1px solid rgba(255,255,255,.18)}
 .maker .who{margin:0;font-size:13px;color:rgba(255,255,255,.65)}
 .maker .name{margin:12px 0 0;font-size:24px;font-weight:800;line-height:1.3}
 .maker .bio{margin:8px 0 0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.75)}
-.maker .bio a{color:var(--paper);text-underline-offset:3px}
+.maker .bio a{color:var(--paper);font-weight:700;text-decoration:none;text-underline-offset:3px}
+.maker .bio a:hover{text-decoration:underline}
 .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 .links a{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35);color:var(--paper);text-decoration:none;font-size:14px;font-weight:700;transition:background .2s}
 .links a:hover{background:rgba(255,255,255,.1)}
@@ -143,7 +143,7 @@ document.getElementById('endline').innerHTML = esc(COPY.endline).replace(/\[([^\
 // ── 단어 화면 ──
 const arrow = d => `<svg viewBox="0 0 24 24"><path d="${d}"/></svg>`;
 document.getElementById('entries').innerHTML = ENTRIES.map((e, i) => `<section class="entry" id="w-${i}" data-i="${i}">
- <h2 class="hw${e.word.length > 6 ? ' xlong' : e.word.length > 3 ? ' long' : ''}">${esc(e.word)}${e.note ? `<small class="hwnote">${esc(e.note)}</small>` : ''}</h2>
+ <h2 class="hw">${esc(e.word)}${e.note ? `<small class="hwnote">${esc(e.note)}</small>` : ''}</h2>
  <div class="player">
   <div class="sheet" aria-live="polite"></div>
   <div class="ctrl">
