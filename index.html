@@ -1,8 +1,8 @@
 <!doctype html>
 <!-- 클로드 사투리 사전 v5
      첫 화면: 단어 소나기(Matter.js). 1순위 주황 큰 글씨, 2순위 검정 큰 글씨, 3순위 작은 글씨. 단어를 톡 누르면 그 단어 화면으로. 오른쪽 위 치트시트·GitHub 글자 링크.
-     단어 화면: 대표 4개(축 → 갈린다 → 자리 → 함께 봅니다) 뒤에 나머지 단어. 넘기면 화면 하나씩 멈춘다(scroll-snap).
-     예문이 먼저 재생되고(빨간 펜 교정), 좌우 버튼·밀기·점으로 예문을 넘긴다. 그 아래 「왜 이럴까?」와 한 줄 문구.
+     단어 화면: 강한 단어부터 나온다(순서는 data.js). 넘기면 화면 하나씩 멈추고, 맨 아래 화살표를 눌러도 다음 단어로 간다(scroll-snap).
+     예문이 한 바퀴 재생되고(빨간 펜 교정) 멈춘다. 좌우 버튼·밀기·점으로 예문을 다시 본다. 그 아래 「왜 이럴까?」와 한 줄 문구.
      화면 문구(COPY·quip·사람 말)는 제미나이 작성분만 쓴다. -->
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>클로드 사투리 사전</title>
@@ -44,12 +44,12 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .corner a{display:inline-flex;align-items:center;height:44px;padding:0 10px;font-size:13px;font-weight:600;color:rgba(255,255,255,.82);text-decoration:none;transition:color .2s}
 .corner a:hover{color:var(--paper);text-decoration:underline;text-underline-offset:4px}
 .corner i{width:1px;height:12px;background:rgba(255,255,255,.28)}
-.chip{position:absolute;left:0;top:0;white-space:nowrap;font-family:"Noto Serif KR",serif;font-weight:900;line-height:1;padding:.22em .34em .3em;background:var(--paper);color:var(--ink);border-radius:4px;will-change:transform;z-index:2;cursor:grab;letter-spacing:-.03em;touch-action:none;user-select:none}
+.chip{position:absolute;left:0;top:0;white-space:nowrap;font-family:"Noto Serif KR",serif;font-weight:900;line-height:1;padding:.22em .34em .3em;background:var(--paper);color:var(--ink);border-radius:4px;will-change:transform;z-index:2;cursor:grab;letter-spacing:-.03em;touch-action:pan-y;user-select:none}
 .chip.t1{color:var(--coral)}
 .chip.t3{color:#374151}
 
 /* ── 단어 화면 ── */
-.entry{min-height:100svh;padding:calc(clamp(40px,min(9vw,6svh),110px) + 100lvh - 100svh) clamp(20px,5vw,64px) 40px;max-width:1100px;margin:0 auto;display:flex;flex-direction:column}
+.entry{min-height:100svh;padding:calc(clamp(40px,min(9vw,6svh),110px) + 100lvh - 100svh) clamp(20px,5vw,64px) 8px;max-width:1100px;margin:0 auto;display:flex;flex-direction:column}
 /* 단어 사이 검은 선은 뺐다: 주소줄이 접혀 화면이 길어지면 다음 화면의 선이 바닥에 비쳤다. 화면 나눔은 스냅이 맡는다.
    위 여백에 주소줄 높이(100lvh - 100svh)를 더해, 화면이 길어져도 바닥에 다음 단어가 비치지 않고 빈 여백만 보인다 */
 /* 표제어는 글자 수와 무관하게 한 크기. 가장 긴 표제어(함께 봅니다, 약 4.84em)가 한 줄에 들어가는 폭에 맞춘다 */
@@ -68,21 +68,29 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .human{margin-top:.3em;opacity:0;transform:translateY(.3em);transition:opacity .5s,transform .5s var(--ease)}
 .human.on{opacity:1;transform:none}
 /* 예문 넘기기: 좌우 동그라미 버튼 + 누를 수 있는 점 */
-.ctrl{display:flex;align-items:center;gap:18px;margin-top:20px}
-.nav{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--paper);transition:transform .2s var(--ease),background .2s,opacity .2s}
-.nav svg{width:22px;height:22px;stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.nav:hover{background:var(--coral);transform:scale(1.06)}
-.nav:active{transform:scale(.92)}
+.ctrl{display:flex;align-items:center;gap:10px;margin-top:14px}
+.ctrl.single{display:none}
+.nav{position:relative;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 1.5px var(--line);color:#6B7280;transition:color .2s,box-shadow .2s}
+.nav::before{content:"";position:absolute;inset:-5px}
+.nav svg{width:15px;height:15px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.nav:hover{color:var(--coral);box-shadow:inset 0 0 0 1.5px var(--coral)}
 .dots{display:flex;gap:6px}
 .dots button{width:28px;height:28px;display:grid;place-items:center}
 .dots button::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--line);transition:background .3s,width .3s var(--ease)}
 .dots button.on::after{background:var(--coral);width:26px;border-radius:5px}
-@media (hover:hover){.ctrl .nav{opacity:.35}.player:hover .nav{opacity:1}}
-.about{margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.about{margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
 /* 「왜 이럴까?」 문구: 예문(명조·굵게)과 서체·굵기·색을 모두 달리해 덧붙인 설명으로 읽히게(시안 ① A안) */
 .quip{margin:0;font-family:"Pretendard",sans-serif;font-weight:500;font-size:clamp(17px,2vw,20px);line-height:1.65;max-width:32em;color:#6B7280}
 /* 「왜 이럴까?」: 뜻풀이 바로 위 작은 제목. 뜻풀이가 곧 답이다 */
 .whyq{margin:0 0 10px;font-size:15px;font-weight:700;color:var(--coral);letter-spacing:-.01em}
+
+/* 아래로 넘기기 신호 */
+/* 첫 화면 「사투리 모아보기」의 검은 원과 같은 모양. 글자 없이 화살표만 둔다 */
+.nextw{align-self:center;margin-top:24px;width:44px;height:44px;display:grid;place-items:center}
+.nextw i{width:36px;height:36px;border-radius:50%;background:var(--ink);display:grid;place-items:center}
+.nextw svg{width:16px;height:16px;stroke:var(--paper);stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.nextw.cue i{animation:nudge .9s ease-in-out 2}
+@keyframes nudge{50%{transform:translateY(5px)}}
 
 /* ── 마무리 ── */
 .end{min-height:100svh;display:flex;flex-direction:column;background:var(--ink);color:var(--paper);padding:clamp(72px,12vw,140px) clamp(20px,5vw,64px) 32px}
@@ -114,7 +122,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
  </div>
 </header>
 <main id="entries"></main>
-<footer class="end"><h2 id="endline"></h2>
+<footer class="end" id="end"><h2 id="endline"></h2>
  <div class="maker">
   <p class="who">만든 사람</p>
   <p class="name">안병욱</p>
@@ -146,13 +154,15 @@ document.getElementById('entries').innerHTML = ENTRIES.map((e, i) => `<section c
  <h2 class="hw">${esc(e.word)}${e.note ? `<small class="hwnote">${esc(e.note)}</small>` : ''}</h2>
  <div class="player">
   <div class="sheet" aria-live="polite"></div>
-  <div class="ctrl">
+  <div class="ctrl${e.ex.length < 2 ? ' single' : ''}">
    <button class="nav prev" type="button" aria-label="이전 예문">${arrow('M15 5l-7 7 7 7')}</button>
    <div class="dots">${e.ex.map((_, k) => `<button type="button" aria-label="예문 ${k + 1}"></button>`).join('')}</div>
    <button class="nav next" type="button" aria-label="다음 예문">${arrow('M9 5l7 7-7 7')}</button>
   </div>
  </div>
- <div class="about"><p class="whyq">${esc(COPY.why)}</p><p class="quip">${esc(e.quip)}</p></div></section>`).join('');
+ <div class="about"><p class="whyq">${esc(COPY.why)}</p><p class="quip">${esc(e.quip)}</p></div>
+ <button class="nextw" type="button" aria-label="${i + 1 < ENTRIES.length ? '다음 단어' : '끝 화면'}" data-to="${i + 1 < ENTRIES.length ? 'w-' + (i + 1) : 'end'}"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></i></button></section>`).join('');
+document.querySelectorAll('.nextw').forEach(b => b.onclick = () => document.getElementById(b.dataset.to).scrollIntoView());
 document.getElementById('down').addEventListener('click', () => document.getElementById('w-0').scrollIntoView());
 
 function loopPath() {
@@ -173,10 +183,11 @@ class Player {
     sec.querySelector('.next').onclick = () => this.go(this.k + 1, true);
     this.dots.forEach((d, k) => d.onclick = () => this.go(k, true));
     let sx = null; const pl = sec.querySelector('.player');
+    pl.addEventListener('pointercancel', () => { sx = null; });
     pl.addEventListener('pointerdown', ev => { if (!ev.target.closest('button')) sx = ev.clientX; });
     pl.addEventListener('pointerup', ev => { if (sx !== null && Math.abs(ev.clientX - sx) > 50) this.go(this.k + (ev.clientX < sx ? 1 : -1), true); sx = null; });
   }
-  go(k, manual) { if (manual) this.auto = false; this.k = (k + this.e.ex.length) % this.e.ex.length; this.play(); }
+  go(k, manual) { if (manual) { this.auto = false; this.done = false; } this.k = (k + this.e.ex.length) % this.e.ex.length; this.play(); }
   stop() { this.token = null; }
   async play() {
     const token = this.token = {}, [ai, human] = this.e.ex[this.k], live = () => this.token === token;
@@ -198,14 +209,16 @@ class Player {
     this.sheet.querySelector('.old').classList.add('struck');
     await wait(400); if (!live()) return;
     const hu = this.sheet.querySelector('.human'); hu.textContent = human; hu.classList.add('on');
-    await wait(3200);
-    if (live() && this.auto) this.go(this.k + 1, false);
+    this.sec.querySelector('.nextw').classList.add('cue');
+    await wait(3200); if (!live()) return;
+    // 예문을 한 바퀴만 돌고 마지막 문장에서 멈춘다. 다시 보려면 좌우 버튼을 누른다
+    if (this.auto && this.k < this.e.ex.length - 1) this.go(this.k + 1, false); else this.done = true;
   }
 }
 const players = new Map();
 const io = new IntersectionObserver(es => es.forEach(en => {
   const p = players.get(en.target);
-  if (en.isIntersecting && !p.token) p.play();
+  if (en.isIntersecting && !p.token && !p.done) p.play();
   else if (!en.isIntersecting) p.stop();
 }), {threshold: .45});
 
