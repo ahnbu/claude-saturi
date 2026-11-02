@@ -12,7 +12,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;900&display=swap">
 <style>
-:root{--ink:#111827;--paper:#FFFFFF;--coral:#FF6B47;--soft:#9CA3AF;--line:#E5E7EB;--ease:cubic-bezier(.16,1,.3,1)}
+/* --soft: 지운 원문 글자, 흰 바탕 대비 4.8:1. --dot: 안 켜진 점, 3.3:1(누를 수 있는 요소의 최소 3:1) */
+:root{--ink:#111827;--paper:#FFFFFF;--coral:#FF6B47;--soft:#6B7280;--dot:#878E9B;--line:#E5E7EB;--ease:cubic-bezier(.16,1,.3,1)}
+/* 화면에는 안 보이고 화면 낭독기만 읽는 글 */
+.sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-snap-type:y mandatory}
 /* 넘길 때 단어 화면 하나씩 멈춘다 */
@@ -47,6 +50,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .chip{position:absolute;left:0;top:0;white-space:nowrap;font-family:"Noto Serif KR",serif;font-weight:900;line-height:1;padding:.22em .34em .3em;background:var(--paper);color:var(--ink);border-radius:4px;will-change:transform;z-index:2;cursor:grab;letter-spacing:-.03em;touch-action:pan-y;user-select:none}
 .chip.t1{color:var(--coral)}
 .chip.t3{color:#374151}
+/* Matter.js를 못 받았거나 「동작 줄이기」를 켠 경우: 떨어뜨리지 않고 바닥에 가지런히 놓는다 */
+.pile{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:6px;padding:0 12px 14px}
+.pile .chip{position:static;will-change:auto;cursor:pointer}
 
 /* ── 단어 화면 ── */
 .entry{min-height:100svh;padding:calc(clamp(40px,min(9vw,6svh),110px) + 100lvh - 100svh) clamp(20px,5vw,64px) 8px;max-width:1100px;margin:0 auto;display:flex;flex-direction:column}
@@ -76,7 +82,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .nav:hover{color:var(--coral);box-shadow:inset 0 0 0 1.5px var(--coral)}
 .dots{display:flex;gap:6px}
 .dots button{width:28px;height:28px;display:grid;place-items:center}
-.dots button::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--line);transition:background .3s,width .3s var(--ease)}
+.dots button::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--dot);transition:background .3s,width .3s var(--ease)}
 .dots button.on::after{background:var(--coral);width:26px;border-radius:5px}
 .about{margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
 /* 「왜 이럴까?」 문구: 예문(명조·굵게)과 서체·굵기·색을 모두 달리해 덧붙인 설명으로 읽히게(시안 ① A안) */
@@ -153,7 +159,8 @@ const arrow = d => `<svg viewBox="0 0 24 24"><path d="${d}"/></svg>`;
 document.getElementById('entries').innerHTML = ENTRIES.map((e, i) => `<section class="entry" id="w-${i}" data-i="${i}">
  <h2 class="hw">${esc(e.word)}${e.note ? `<small class="hwnote">${esc(e.note)}</small>` : ''}</h2>
  <div class="player">
-  <div class="sheet" aria-live="polite"></div>
+  <div class="sheet" aria-hidden="true"></div>
+  <p class="sr" aria-live="polite"></p>
   <div class="ctrl${e.ex.length < 2 ? ' single' : ''}">
    <button class="nav prev" type="button" aria-label="이전 예문">${arrow('M15 5l-7 7 7 7')}</button>
    <div class="dots">${e.ex.map((_, k) => `<button type="button" aria-label="예문 ${k + 1}"></button>`).join('')}</div>
@@ -174,11 +181,13 @@ function marked(text, marks) {
   for (const m of [...marks].sort((a, b) => b.length - a.length)) t = t.split(esc(m)).join(`\u0000${esc(m)}\u0001`);
   return t.replace(/\u0000/g, '<span class="hit">').replace(/\u0001/g, '</span>');
 }
-// 예문 재생기: 자동으로 넘어가다가, 사람이 한 번 넘기면 그때부터는 손으로만 넘긴다
+// 「동작 줄이기」를 켠 사람에게는 글자 치기·펜 그리기·자동 넘김·단어 낙하를 하지 않고 완성된 화면을 바로 보인다
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// 예문 재생기: 자동으로 한 바퀴 돌고, 사람이 한 번 넘기면 그때부터는 손으로만 넘긴다
 class Player {
   constructor(sec) {
-    this.sec = sec; this.e = ENTRIES[sec.dataset.i]; this.k = 0; this.auto = true; this.token = null;
-    this.sheet = sec.querySelector('.sheet'); this.dots = [...sec.querySelectorAll('.dots button')];
+    this.sec = sec; this.e = ENTRIES[sec.dataset.i]; this.k = 0; this.auto = !reduce; this.token = null;
+    this.sheet = sec.querySelector('.sheet'); this.sr = sec.querySelector('.sr'); this.dots = [...sec.querySelectorAll('.dots button')];
     sec.querySelector('.prev').onclick = () => this.go(this.k - 1, true);
     sec.querySelector('.next').onclick = () => this.go(this.k + 1, true);
     this.dots.forEach((d, k) => d.onclick = () => this.go(k, true));
@@ -191,7 +200,15 @@ class Player {
   stop() { this.token = null; }
   async play() {
     const token = this.token = {}, [ai, human] = this.e.ex[this.k], live = () => this.token === token;
-    this.dots.forEach((d, n) => d.classList.toggle('on', n === this.k));
+    this.dots.forEach((d, n) => { d.classList.toggle('on', n === this.k); d.setAttribute('aria-current', n === this.k ? 'true' : 'false'); });
+    // 화면 낭독기에는 글자 치기 대신 완성된 두 문장을 한 번만 읽힌다
+    this.sr.textContent = `클로드 문장: ${ai} 사람 말: ${human}`;
+    if (reduce) {
+      this.sheet.innerHTML = `<div class="old struck"><span class="typed">${marked(ai, this.e.marks)}</span></div><div class="human on"></div>`;
+      this.sheet.querySelector('.human').textContent = human;
+      for (const hit of this.sheet.querySelectorAll('.hit')) hit.insertAdjacentHTML('beforeend', `<svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${loopPath()}"/></svg>`);
+      this.done = true; return;
+    }
     this.sheet.innerHTML = '<div class="old"><span class="typed"></span><span class="caret"></span></div><div class="human"></div>';
     const typed = this.sheet.querySelector('.typed');
     for (let c = 1; c <= ai.length; c++) { if (!live()) return; typed.textContent = ai.slice(0, c); await wait(38 + Math.random() * 40); }
@@ -222,24 +239,52 @@ const io = new IntersectionObserver(es => es.forEach(en => {
   else if (!en.isIntersecting) p.stop();
 }), {threshold: .45});
 
-// ── 첫 화면 단어 소나기 ──
-const {Engine, Bodies, Composite, Body, Constraint, Runner} = Matter;
+// 예문 재생기는 첫 화면 효과와 따로 켠다. Matter.js를 못 받아도 단어 화면은 그대로 돈다
+function startPlayers() { document.querySelectorAll('.entry').forEach(s => { players.set(s, new Player(s)); io.observe(s); }); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startPlayers); else startPlayers();
+
+// ── 첫 화면 단어 조각 ──
 const hero = document.querySelector('.hero'), stage = document.getElementById('stage');
-const W = hero.clientWidth, H = hero.clientHeight, mobile = W < 700;
-const engine = Engine.create({gravity: {y: 1.2}});
-const WALL = 200;
-Composite.add(engine.world, [
-  Bodies.rectangle(W / 2, H + WALL / 2, W * 3, WALL, {isStatic: true}),
-  Bodies.rectangle(-WALL / 2, H / 2, WALL, H * 4, {isStatic: true}),
-  Bodies.rectangle(W + WALL / 2, H / 2, WALL, H * 4, {isStatic: true}),
-]);
-const items = [];
-function drop(word, tier, x, size, spawnY) {
+// 조각은 키보드·화면 낭독기로도 누를 수 있는 단추로 만든다
+function makeChip(word, tier, size) {
   const el = document.createElement('div');
   el.className = 'chip t' + tier; el.textContent = word; el.style.fontSize = size + 'px';
   // 첫 화면 단어가 표제어와 다르면(갈래 → 갈린다) 표제어·동그라미 낱말·chips로 찾는다
   const idx = ENTRIES.findIndex(e => e.word === word || (e.chips || []).includes(word) || e.marks.includes(word));
-  if (idx >= 0) el.dataset.go = idx;
+  if (idx >= 0) {
+    el.dataset.go = idx; el.tabIndex = 0; el.setAttribute('role', 'button'); el.setAttribute('aria-label', `${word} 화면으로`);
+    el.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); goWord(idx); } });
+  }
+  return el;
+}
+const goWord = idx => document.getElementById('w-' + idx).scrollIntoView();
+const SCALE = {1: 1.75, 2: 1.15, 3: .78};
+const chipSize = (base, w, tier) => base * SCALE[tier] * (tier === 3 ? .9 + Math.random() * .25 : 1) * (w.length === 1 && tier < 3 ? 1.45 : 1);
+const physics = window.Matter && !reduce;
+if (!physics) {
+  // 떨어뜨리지 않고 바닥에 가지런히 놓는다. 누르면 그 단어 화면으로 간다
+  const pile = document.createElement('div'); pile.className = 'pile'; stage.appendChild(pile);
+  const base = hero.clientWidth < 700 ? 17 : 26;
+  for (const t of [1, 2, 3]) for (const [w, tier] of TIER.filter(x => x[1] === t)) {
+    const el = makeChip(w, tier, chipSize(base, w, tier));
+    if (el.dataset.go) el.addEventListener('click', () => goWord(el.dataset.go));
+    pile.appendChild(el);
+  }
+}
+const {Engine, Bodies, Composite, Body, Constraint, Runner} = physics ? Matter : {};
+let W = hero.clientWidth, H = hero.clientHeight;
+const mobile = W < 700;
+const engine = physics ? Engine.create({gravity: {y: 1.2}}) : null;
+const WALL = 200, FLOOR = 8000;
+const walls = physics ? [
+  Bodies.rectangle(W / 2, H + WALL / 2, FLOOR, WALL, {isStatic: true}),
+  Bodies.rectangle(-WALL / 2, H / 2, WALL, H * 4, {isStatic: true}),
+  Bodies.rectangle(W + WALL / 2, H / 2, WALL, H * 4, {isStatic: true}),
+] : [];
+if (physics) Composite.add(engine.world, walls);
+const items = [];
+function drop(word, tier, x, size, spawnY) {
+  const el = makeChip(word, tier, size);
   stage.appendChild(el);
   const w = el.offsetWidth, h = el.offsetHeight;
   const b = Bodies.rectangle(x, spawnY - h - Math.random() * 40, w, h, {restitution: .25, friction: .6, chamfer: {radius: 4}, angle: (Math.random() - .5) * .5});
@@ -259,43 +304,73 @@ function bindDrag(el, b) {
     const up = e2 => {
       Composite.remove(engine.world, c); el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
       const moved = Math.hypot(e2.clientX - r.left - start.x, e2.clientY - r.top - start.y);
-      if (moved < 8 && performance.now() - t0 < 350 && el.dataset.go) document.getElementById('w-' + el.dataset.go).scrollIntoView();
+      // 손가락이 조금 흔들리거나 느리게 떼도 누른 것으로 본다
+      if (moved < 12 && performance.now() - t0 < 600 && el.dataset.go) goWord(el.dataset.go);
     };
     el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
   });
 }
-stage.addEventListener('click', e => {
-  const r = hero.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-  items.forEach(({b}) => { const dx = b.position.x - x, dy = b.position.y - y, d = Math.hypot(dx, dy); if (d < 220) Body.applyForce(b, b.position, {x: dx / d * .02 * b.mass, y: -.05 * b.mass}); });
-});
 let bandBottom = 0;
-document.fonts.ready.then(() => {
-  bandBottom = document.getElementById('band').getBoundingClientRect().bottom - hero.getBoundingClientRect().top;
-  const scale = {1: 1.75, 2: 1.15, 3: .78};
-  // 단어 더미가 제목 아래 공간보다 크면 위 칩이 제목에 잘린다. 공간에 맞춰 글자 크기를 줄인다(노트북처럼 낮은 화면)
-  const area = TIER.reduce((sum, [w, tier]) => sum + (scale[tier] * (w.length === 1 && tier < 3 ? 1.45 : 1)) ** 2 * (w.length + .7) * 1.35, 0);
-  const base = Math.min(mobile ? 24 : 37, Math.sqrt((H - bandBottom) * W * .26 / area));
-  const shuffle = a => a.sort(() => Math.random() - .5);
-  const order = [...shuffle(TIER.filter(t => t[1] === 3)), ...shuffle(TIER.filter(t => t[1] === 2)), ...shuffle(TIER.filter(t => t[1] === 1))];
-  // 짧게 쏟아지고(간격 75ms), 1순위 3개만 조금 띄워 하나씩 떨어진다
-  let t = 400;
-  order.forEach(([w, tier]) => {
-    t += tier === 1 ? 380 : 75;
-    setTimeout(() => drop(w, tier, W * (.1 + Math.random() * .8), base * scale[tier] * (tier === 3 ? .9 + Math.random() * .25 : 1) * (w.length === 1 && tier < 3 ? 1.45 : 1), bandBottom), t);
+const measureBand = () => { bandBottom = document.getElementById('band').getBoundingClientRect().bottom - hero.getBoundingClientRect().top; };
+if (physics) {
+  stage.addEventListener('click', e => {
+    const r = hero.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    items.forEach(({b}) => { const dx = b.position.x - x, dy = b.position.y - y, d = Math.hypot(dx, dy); if (d < 220) Body.applyForce(b, b.position, {x: dx / d * .02 * b.mass, y: -.05 * b.mass}); });
   });
-  document.querySelectorAll('.entry').forEach(s => { players.set(s, new Player(s)); io.observe(s); });
-});
-Runner.run(Runner.create(), engine);
-(function loop() {
-  for (const it of items) {
-    const {b, h} = it;
-    if (b.position.y - h / 2 < bandBottom + 6 && b.speed < .4) {
-      if (!it.stuck) it.stuck = performance.now();
-      else if (performance.now() - it.stuck > 500) { Body.applyForce(b, b.position, {x: (b.position.x < W / 2 ? -1 : 1) * .012 * b.mass, y: 0}); it.stuck = 0; }
-    } else it.stuck = 0;
+  document.fonts.ready.then(() => {
+    measureBand();
+    // 단어 더미가 제목 아래 공간보다 크면 위 칩이 제목에 잘린다. 공간에 맞춰 글자 크기를 줄인다(노트북처럼 낮은 화면)
+    const area = TIER.reduce((sum, [w, tier]) => sum + (SCALE[tier] * (w.length === 1 && tier < 3 ? 1.45 : 1)) ** 2 * (w.length + .7) * 1.35, 0);
+    const base = Math.min(mobile ? 24 : 37, Math.sqrt((H - bandBottom) * W * .26 / area));
+    const shuffle = a => a.sort(() => Math.random() - .5);
+    const order = [...shuffle(TIER.filter(t => t[1] === 3)), ...shuffle(TIER.filter(t => t[1] === 2)), ...shuffle(TIER.filter(t => t[1] === 1))];
+    // 짧게 쏟아지고(간격 75ms), 1순위 3개만 조금 띄워 하나씩 떨어진다
+    let t = 400;
+    order.forEach(([w, tier]) => {
+      t += tier === 1 ? 380 : 75;
+      setTimeout(() => drop(w, tier, W * (.1 + Math.random() * .8), chipSize(base, w, tier), bandBottom), t);
+    });
+  });
+  // 폰을 돌리거나 창 크기가 바뀌면 바닥·벽을 새 크기로 옮기고, 밖으로 나간 조각을 안으로 들인다
+  let rt = 0;
+  addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      const nw = hero.clientWidth, nh = hero.clientHeight;
+      if (nw === W && nh === H) return;
+      W = nw; H = nh; measureBand();
+      Body.setPosition(walls[0], {x: W / 2, y: H + WALL / 2});
+      Body.setPosition(walls[1], {x: -WALL / 2, y: H / 2});
+      Body.setPosition(walls[2], {x: W + WALL / 2, y: H / 2});
+      for (const {b, w, h} of items) {
+        const x = Math.min(Math.max(b.position.x, w / 2 + 4), W - w / 2 - 4), y = Math.min(b.position.y, H - h / 2 - 4);
+        if (x !== b.position.x || y !== b.position.y) { Body.setPosition(b, {x, y}); Body.setVelocity(b, {x: 0, y: 0}); }
+      }
+    }, 200);
+  });
+  // 첫 화면이 안 보이면 물리 계산과 그리기를 멈춘다(배터리)
+  const runner = Runner.create();
+  let raf = 0, running = false;
+  function loop() {
+    for (const it of items) {
+      const {b, h} = it;
+      if (b.position.y - h / 2 < bandBottom + 6 && b.speed < .4) {
+        if (!it.stuck) it.stuck = performance.now();
+        else if (performance.now() - it.stuck > 500) { Body.applyForce(b, b.position, {x: (b.position.x < W / 2 ? -1 : 1) * .012 * b.mass, y: 0}); it.stuck = 0; }
+      } else it.stuck = 0;
+    }
+    for (const {el, b, w, h} of items) el.style.transform = `translate(${b.position.x - w / 2}px,${b.position.y - h / 2}px) rotate(${b.angle}rad)`;
+    raf = requestAnimationFrame(loop);
   }
-  for (const {el, b, w, h} of items) el.style.transform = `translate(${b.position.x - w / 2}px,${b.position.y - h / 2}px) rotate(${b.angle}rad)`;
-  requestAnimationFrame(loop);
-})();
+  const setRunning = on => {
+    if (on === running) return;
+    running = on;
+    if (on) { Runner.run(runner, engine); raf = requestAnimationFrame(loop); }
+    else { Runner.stop(runner); cancelAnimationFrame(raf); }
+  };
+  window.heroRunning = () => running;
+  setRunning(true);
+  new IntersectionObserver(es => setRunning(es[0].isIntersecting)).observe(hero);
+}
 </script>
 </body></html>
