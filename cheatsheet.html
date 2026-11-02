@@ -59,7 +59,7 @@ h1 em{font-style:normal;color:var(--coral)}
 <script src="data.js"></script>
 <script>
 // ── 화면 문구(제미나이 작성, 공개문구 기록 #2) ──
-const SHEET = {title: '클로드 [사투리] 한눈에 보기', lead: '매일 마주치는 20개 표현과 사람 말 전후 비교, 짤막한 촌평을 한 장에 모았습니다.', back: '사전으로 돌아가기', print: 'PDF로 저장', foot: '만든 사람 안병욱 · <a href="https://planninghigh.com">플래닝하이</a> 대표'};
+const SHEET = {title: '클로드 [사투리] 한눈에 보기', lead: '매일 마주치는 21개 표현과 사람 말 전후 비교, 짤막한 촌평을 한 장에 모았습니다.', back: '사전으로 돌아가기', print: 'PDF로 저장', foot: '만든 사람 안병욱 · <a href="https://planninghigh.com">플래닝하이</a> 대표'};
 const esc = s => s.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
 document.getElementById('title').innerHTML = esc(SHEET.title).replace(/\[([^\]]+)\]/g, '<em>$1</em>');
 document.getElementById('lead').textContent = SHEET.lead;
